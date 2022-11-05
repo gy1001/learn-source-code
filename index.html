@@ -1,0 +1,86 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>todo-list</title>
+  </head>
+  <body>
+    <input type="text" id="input" />
+    <button id="btn">click</button>
+    <ul id="todo-list"></ul>
+    <h1>{{name}}</h1>
+  </body>
+  <script>
+    // 命令式代码
+    document.querySelector('#btn').addEventListener('click', function () {
+      const inputValue = document.querySelector('#input').value
+      const li = document.createElement('li')
+      li.innerText = inputValue
+      document.querySelector('#todo-list').appendChild(li)
+    })
+    // 声明式代码
+    // 比如 vue 中的操作
+    const name = ref('孙悟空')
+    name.value = '猪八戒'
+  </script>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1 id="title">{{count}}</h1>
+    <h2 id="name">{{name}}</h2>
+  </body>
+  <script>
+    let obj = {
+      count: 1,
+    }
+    function render() {
+      document.getElementById('title').innerText = obj.count
+    }
+    render()
+
+    setInterval(() => {
+      obj.count++
+      setState()
+    }, 1000)
+
+    function setState() {
+      render()
+    }
+  </script>
+
+  <script>
+    const objProxy = new Proxy(
+      { name: 1 },
+      {
+        get(target, key) {
+          console.log('get trigger')
+          return target[key]
+        },
+        set(target, key, value) {
+          target[key] = value
+          render2()
+          console.log('set trigger')
+        },
+      }
+    )
+
+    function render2() {
+      document.getElementById('name').innerText = objProxy.name
+    }
+    render2()
+
+    setInterval(() => {
+      objProxy.name++
+    }, 1000)
+  </script>
+</html>
