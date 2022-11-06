@@ -5,13 +5,21 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest packages/",
-    "coverage": "vitest run --coverage"
+    "test:once": "vitest run packages/",
+    "coverage": "vitest run --coverage",
+    "build:utils": "pnpm run --filter @gy/utils build",
+    "build:reactivity": "pnpm run --filter @gy/reactivity build",
+    "build": "pnpm run --filter=@gy/* build",
+    "lint": "eslint packages/**/src",
+    "lint:fix": "eslint packages/**/src --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@antfu/eslint-config": "^0.29.3",
     "@vitest/coverage-c8": "^0.24.5",
+    "eslint": "^8.26.0",
     "typescript": "^4.8.4",
     "unbuild": "^0.9.4",
     "vitest": "^0.24.5"
