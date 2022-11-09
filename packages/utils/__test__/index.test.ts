@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { isObject, isOn } from '../src'
 
 describe('测试工具库', () => {
