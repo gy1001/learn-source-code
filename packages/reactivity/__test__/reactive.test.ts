@@ -35,4 +35,16 @@ describe('响应式', () => {
     number.value.count++
     expect(value).toBe(2)
   })
+
+  // 处理边缘 case
+  it('reactive支持嵌套', () => {
+    const obj = reactive({ count: 1, info: { usename: '孙悟空' } })
+    let value
+    effect(() => {
+      value = obj.info.usename
+    })
+    expect(value).toBe('孙悟空')
+    obj.info.usename = '唐僧'
+    expect(value).toBe('唐僧')
+  })
 })
