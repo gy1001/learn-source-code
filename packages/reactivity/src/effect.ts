@@ -7,7 +7,7 @@ export function effect (fn) {
   activeEffect = null
 }
 
-export function track (obj, key) {
+export function track (obj, type, key) {
   if (!activeEffect)
     return
   let depsMap = targetMap.get(obj)
@@ -19,7 +19,7 @@ export function track (obj, key) {
   deps.add(activeEffect)
 }
 
-export function trigger (obj, key) {
+export function trigger (obj, type, key) {
   const targetValue = targetMap.get(obj)
   if (!targetValue)
     return
