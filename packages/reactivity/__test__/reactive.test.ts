@@ -74,4 +74,15 @@ describe('响应式', () => {
     result._count++ // 这里更改后 如果不使用 reflect，普通的更新是无法被监听到的
     expect(fn).toBeCalledTimes(2)
   })
+
+  it('支持set/map', () => {
+    const set = new Set([1])
+    let val
+    effect(() => {
+      val = set.size
+    })
+    expect(val).toBe(1)
+    set.add(2)
+    expect(val).toBe(2)
+  })
 })

@@ -1,6 +1,13 @@
 import { isObject } from '@gy/utils/src'
 import { track, trigger } from './effect'
 
+// 这里对于每一种数据类型，处理为响应式方式自然是不一样的
+// 对于 {}  [] 使用 proxy 的 set get等方式
+// 对于 number string 使用 ref方式
+// 而对于 map set weakmap weakset 方式 依然用 proxy 但是会有特殊处理，
+// 对于普通对象 let obj = { name: '孙悟空' }， 调用 obj.name 触发 get 操作，obj.name = "猪八戒" 触发 set 操作， 但是 key 是 name
+// 对于 let set = new Set([1])  set.add(2), 触发的也是 get 操作，但是 key 是 add
+
 export function reactive (obj): any {
   return new Proxy(obj, {
     get (target, key, receiver) {
