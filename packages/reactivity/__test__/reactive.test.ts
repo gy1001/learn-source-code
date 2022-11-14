@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { effect, reactive, ref } from '../src/index'
 
@@ -57,5 +57,21 @@ describe('响应式', () => {
     expect(val).toBe('孙悟空')
     delete obj.name
     expect(val).toBeUndefined()
+  })
+  it('why do we use reflect', () => {
+    const obj = {
+      _count: 1,
+      get count () {
+        return this._count
+      },
+    }
+    const result = reactive(obj)
+    const fn = vi.fn((arg) => { return arg })
+    effect(() => {
+      fn(result.count) //  触发的是 count 函数内部的 this._count
+    })
+    expect(fn).toBeCalledTimes(1)
+    result._count++ // 这里更改后 如果不使用 reflect，普通的更新是无法被监听到的
+    expect(fn).toBeCalledTimes(2)
   })
 })
