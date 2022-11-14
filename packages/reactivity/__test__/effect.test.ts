@@ -10,8 +10,10 @@ describe('effect', () => {
     const fn2 = vi.fn(() => { }) // vi.fn 包裹函数之后，就可以测试这个函数执行了多少次
     effect(() => {
       fn1()
+      console.log('fn1执行了')
       effect(() => {
         fn2()
+        console.log('fn2执行了')
         temp1 = obj.foo
       })
       temp2 = obj.bar
@@ -23,6 +25,6 @@ describe('effect', () => {
 
     obj.bar++
     expect(fn1).toBeCalledTimes(2)
-    expect(fn2).toBeCalledTimes(1) // 这里有疑问？
+    expect(fn2).toBeCalledTimes(1) // 这里有疑问？代码检测执行了2次，视频教程里面是1次
   })
 })

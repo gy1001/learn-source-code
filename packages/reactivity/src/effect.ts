@@ -6,7 +6,7 @@ export function effect (fn) {
   activeEffect = fn
   effectStack.push(activeEffect)
   fn() // 内部会触发 proxy 的 get 方法 ，执行 track, 执行完重置
-  // 如果  fn 内部还有 effect ， 这里就需要进行特殊处理
+  // 如果 fn 内部还有 effect ， 这里就需要进行特殊处理
   effectStack.pop()
   // 恢复为上一个嵌套数组的值
   activeEffect = effectStack[effectStack.length - 1]
@@ -20,7 +20,7 @@ export function track (obj, type, key) {
     targetMap.set(obj, (depsMap = new Map()))
   let deps = depsMap.get(key)
   if (!deps)
-    depsMap.set(key, (deps = new Set()))
+    depsMap.set(key, (deps = new Set())) // 使用 set 集合，可以自动去重
   deps.add(activeEffect)
 }
 
