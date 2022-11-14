@@ -22,5 +22,14 @@ export function reactive (obj): any {
       return true
     },
     //  等等还有很多其他方法，如 deleteProperty ，delete obj.count 会触发
+    deleteProperty (target, key) {
+      // 使用代理方式
+      const result = Reflect.deleteProperty(target, key)
+      trigger(target, 'delete', key)
+      return result
+      // 不使用代理方式
+      // delete target[key]
+      // return true
+    },
   })
 }

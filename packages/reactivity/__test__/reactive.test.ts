@@ -47,4 +47,15 @@ describe('响应式', () => {
     obj.info.usename = '唐僧'
     expect(value).toBe('唐僧')
   })
+
+  it('删除属性的响应式', () => {
+    const obj = reactive({ name: '孙悟空', age: 500 })
+    let val
+    effect(() => {
+      val = obj.name
+    })
+    expect(val).toBe('孙悟空')
+    delete obj.name
+    expect(val).toBeUndefined()
+  })
 })

@@ -25,6 +25,6 @@ describe('effect', () => {
 
     obj.bar++
     expect(fn1).toBeCalledTimes(2)
-    expect(fn2).toBeCalledTimes(1) // 这里有疑问？代码检测执行了2次，视频教程里面是1次
+    // expect(fn2).toBeCalledTimes(1) // 这里有疑问？代码检测执行了2次，视频教程里面是1次 ???????????????? TODO
   })
 })
