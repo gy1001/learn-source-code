@@ -8,6 +8,28 @@ import { track, trigger } from './effect'
 // 对于普通对象 let obj = { name: '孙悟空' }， 调用 obj.name 触发 get 操作，obj.name = "猪八戒" 触发 set 操作， 但是 key 是 name
 // 对于 let set = new Set([1])  set.add(2), 触发的也是 get 操作，但是 key 是 add
 
+const enum TargetType {
+  INVALID = 0,
+  COMMON = 1, // 普通对象
+  COLLECTION = 2, // set map + weakxxx
+
+}
+
+function targetTypeMap (type: string) {
+  switch (type) {
+    case 'Object':
+    case 'Array':
+      return TargetType.COMMON
+    case 'Map':
+    case 'Set':
+    case 'WeakMap':
+    case 'WeakSet':
+      return TargetType.COLLECTION
+    default:
+      return TargetType.INVALID
+  }
+}
+
 export function reactive (obj): any {
   return new Proxy(obj, {
     get (target, key, receiver) {
