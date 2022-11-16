@@ -76,7 +76,7 @@ describe('响应式', () => {
   })
 
   it('支持set/map', () => {
-    const set = new Set([1])
+    const set = reactive(new Set([1]))
     let val
     effect(() => {
       val = set.size

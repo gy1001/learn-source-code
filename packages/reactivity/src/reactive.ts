@@ -1,4 +1,4 @@
-import { isObject } from '@gy/utils/src'
+import { isObject, toRawType } from '@gy/utils/src'
 import { track, trigger } from './effect'
 
 // 这里对于每一种数据类型，处理为响应式方式自然是不一样的
@@ -12,8 +12,9 @@ const enum TargetType {
   INVALID = 0,
   COMMON = 1, // 普通对象
   COLLECTION = 2, // set map + weakxxx
-
 }
+
+export const COL_KEY = Symbol('collection')
 
 function targetTypeMap (type: string) {
   switch (type) {
@@ -30,40 +31,66 @@ function targetTypeMap (type: string) {
   }
 }
 
+const baseHandlers = {
+  get (target, key, receiver) {
+    // 收集依赖关系
+    // const value = target[key]
+    // track(target, 'get', key)
+    // return isObject(value) ? reactive(value) : value
+
+    // 使用 reflect
+    const value = Reflect.get(target, key, receiver)
+    track(target, 'get', key)
+    return isObject(value) ? reactive(value) : value
+  },
+  set (target, key, val, reciever) {
+    // 使用标准的 Reflect 来进行处理
+    // 修改数据，执行副作用函数
+    const result = Reflect.set(target, key, val, reciever)
+    trigger(target, 'set', key)
+    return result
+
+    // 如果使用 普通的 target[key] 来进行处理呢，两者某些情况下是有区别的，可以解除注释来进行观察
+    // target[key] = val
+    // trigger(target, 'set', key)
+    // return true
+  },
+  //  等等还有很多其他方法，如 deleteProperty ，delete obj.count 会触发
+  deleteProperty (target, key) {
+    // 使用代理方式
+    const result = Reflect.deleteProperty(target, key)
+    trigger(target, 'delete', key)
+    return result
+    // 不使用 reflect 代理方式
+    // delete target[key]
+    // return true
+  },
+}
+const collectionActions = {
+  add (key) {
+    const target = this.__reactive_raw
+    const result = target.add(key)
+    trigger(target, 'collection-add', key)
+    return result
+  },
+  delete () { },
+  has () { },
+}
+
+const collectionHandlers = {
+  get (target, key) {
+    if (key === '__reactive_raw')
+      return target
+    if (key === 'size') {
+      track(target, 'collection-size', COL_KEY)
+      return Reflect.get(target, key)
+    }
+    // // set.add  set.delete set.has 等等
+    return collectionActions[key]
+  },
+}
+
 export function reactive (obj): any {
-  return new Proxy(obj, {
-    get (target, key, receiver) {
-      // 收集依赖关系
-      // const value = target[key]
-      // track(target, 'get', key)
-      // return isObject(value) ? reactive(value) : value
-
-      // 使用 reflect
-      const value = Reflect.get(target, key, receiver)
-      track(target, 'get', key)
-      return isObject(value) ? reactive(value) : value
-    },
-    set (target, key, val, reciever) {
-      // 使用标准的 Reflect 来进行处理
-      // 修改数据，执行副作用函数
-      const result = Reflect.set(target, key, val, reciever)
-      trigger(target, 'set', key)
-      return result
-
-      // 如果使用 普通的 target[key] 来进行处理呢，两者某些情况下是有区别的，可以解除注释来进行观察
-      // target[key] = val
-      // trigger(target, 'set', key)
-      // return true
-    },
-    //  等等还有很多其他方法，如 deleteProperty ，delete obj.count 会触发
-    deleteProperty (target, key) {
-      // 使用代理方式
-      const result = Reflect.deleteProperty(target, key)
-      trigger(target, 'delete', key)
-      return result
-      // 不使用 reflect 代理方式
-      // delete target[key]
-      // return true
-    },
-  })
+  const handlders = targetTypeMap(toRawType(obj)) === TargetType.COMMON ? baseHandlers : collectionHandlers
+  return new Proxy(obj, handlders)
 }

@@ -1,3 +1,5 @@
+import { COL_KEY } from './reactive'
+
 let activeEffect
 const effectStack: any = []
 const targetMap = new WeakMap() // 依赖收集器，使用 weaakmap 性能会有优势，回收机制好 对象 => {  }
@@ -28,6 +30,8 @@ export function trigger (obj, type, key) {
   const targetValue = targetMap.get(obj)
   if (!targetValue)
     return
+  if (type === 'collection-add')
+    key = COL_KEY
   const depsValue = targetValue.get(key)
   if (depsValue) {
     depsValue.forEach((depEffect) => {
