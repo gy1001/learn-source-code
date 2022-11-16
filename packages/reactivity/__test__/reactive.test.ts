@@ -85,4 +85,22 @@ describe('响应式', () => {
     set.add(2)
     expect(val).toBe(2)
   })
+
+  it('set的删除', () => {
+    const set = reactive(new Set([1, 2]))
+    let val
+    effect(() => {
+      val = set.size
+    })
+    expect(val).toBe(2)
+    set.delete(2)
+    expect(val).toBe(1)
+  })
+
+  it('set的has', () => {
+    const set = reactive(new Set([1, 2]))
+    expect(set.has(1)).toBe(true)
+    set.delete(1)
+    expect(set.has(1)).toBe(false)
+  })
 })

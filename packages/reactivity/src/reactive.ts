@@ -16,6 +16,10 @@ const enum TargetType {
 
 export const COL_KEY = Symbol('collection')
 
+export const ReactiveFlags = {
+  RAW: '__v_raw',
+}
+
 function targetTypeMap (type: string) {
   switch (type) {
     case 'Object':
@@ -68,18 +72,28 @@ const baseHandlers = {
 }
 const collectionActions = {
   add (key) {
-    const target = this.__reactive_raw
+    const target = this[ReactiveFlags.RAW]
     const result = target.add(key)
     trigger(target, 'collection-add', key)
     return result
   },
-  delete () { },
-  has () { },
+  delete (key) {
+    const target = this[ReactiveFlags.RAW]
+    const result = target.delete(key)
+    trigger(target, 'collection-delete', key)
+    return result
+  },
+  has (key) {
+    const target = this[ReactiveFlags.RAW]
+    const result = target.has(key)
+    trigger(target, 'collection-has', key)
+    return result
+  },
 }
 
 const collectionHandlers = {
   get (target, key) {
-    if (key === '__reactive_raw')
+    if (key === ReactiveFlags.RAW)
       return target
     if (key === 'size') {
       track(target, 'collection-size', COL_KEY)
