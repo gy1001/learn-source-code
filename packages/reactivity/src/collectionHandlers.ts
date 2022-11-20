@@ -1,10 +1,7 @@
+import { ReactiveFlags } from './reactive'
 import { track, trigger } from './index'
 
 export const COL_KEY = Symbol('collection')
-
-export const ReactiveFlags = {
-  RAW: '__v_raw',
-}
 
 export const collectionActions = {
   add (key) {

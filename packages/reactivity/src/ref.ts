@@ -32,3 +32,7 @@ class RefImp {
 function covert (val) {
   return isObject(val) ? reactive(val) : val
 }
+
+export function isRef (val): boolean {
+  return val.isRef
+}

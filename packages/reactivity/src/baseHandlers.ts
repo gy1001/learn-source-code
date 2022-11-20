@@ -1,4 +1,5 @@
 import { isObject } from '@gy/utils/src'
+import { ReactiveFlags } from './reactive'
 import { reactive, track, trigger } from './index'
 
 function createGetter (isShadow: Boolean) {
@@ -7,7 +8,8 @@ function createGetter (isShadow: Boolean) {
     // const value = target[key]
     // track(target, 'get', key)
     // return isObject(value) ? reactive(value) : value
-
+    if (key === ReactiveFlags.IS_REACTIVE)
+      return true
     // 使用 reflect
     const value = Reflect.get(target, key, receiver)
     track(target, 'get', key)

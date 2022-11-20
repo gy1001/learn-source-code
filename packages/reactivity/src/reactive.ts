@@ -14,6 +14,14 @@ const enum TargetType {
   COMMON = 1, // 普通对象
   COLLECTION = 2, // set map + weakxxx
 }
+export const ReactiveFlags = {
+  RAW: '__v_raw',
+  IS_REACTIVE: '__is_reactive',
+}
+
+export function isReactive (val: any) {
+  return val[ReactiveFlags.IS_REACTIVE]
+}
 
 function targetTypeMap (type: string) {
   switch (type) {
