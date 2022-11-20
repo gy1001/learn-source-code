@@ -1,5 +1,5 @@
 import { toRawType } from '@gy/utils/src'
-import { baseHandlers } from './baseHandlers'
+import { baseHandlers, shadowReactiveHandlers } from './baseHandlers'
 import { collectionHandlers } from './collectionHandlers'
 
 // 这里对于每一种数据类型，处理为响应式方式自然是不一样的
@@ -32,5 +32,10 @@ function targetTypeMap (type: string) {
 
 export function reactive (obj): any {
   const handlders = targetTypeMap(toRawType(obj)) === TargetType.COMMON ? baseHandlers : collectionHandlers
+  return new Proxy(obj, handlders)
+}
+
+export function shadowReactive (obj) {
+  const handlders = targetTypeMap(toRawType(obj)) === TargetType.COMMON ? shadowReactiveHandlers : collectionHandlers
   return new Proxy(obj, handlders)
 }

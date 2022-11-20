@@ -6,7 +6,7 @@ import { isObject } from '@gy/utils'
 export const result = isObject({})
 
 export { effect, trigger, track } from './effect'
-export { reactive } from './reactive'
+export { reactive, shadowReactive } from './reactive'
 export { ref } from './ref'
 
 // 在真正的项目中，

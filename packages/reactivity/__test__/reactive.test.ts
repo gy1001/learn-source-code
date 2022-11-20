@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-
-import { effect, reactive, ref } from '../src/index'
+import { effect, reactive, ref, shadowReactive } from '../src/index'
 
 describe('响应式', () => {
   it('reactive基本功能', () => {
@@ -102,5 +101,24 @@ describe('响应式', () => {
     expect(set.has(1)).toBe(true)
     set.delete(1)
     expect(set.has(1)).toBe(false)
+  })
+})
+
+describe('浅层响应式', () => {
+  it('shadowReactive', () => {
+    const obj = shadowReactive({ count: 1, info: { name: '孙悟空' } })
+    let val1, val2
+    effect(() => {
+      val1 = obj.info.name
+    })
+    effect(() => {
+      val2 = obj.count
+    })
+    expect(val1).toBe('孙悟空')
+    expect(val2).toBe(1)
+    obj.info.name = '猪八戒'
+    obj.count++
+    expect(val1).toBe('孙悟空') // 深层次的没有响应式
+    expect(val2).toBe(2)
   })
 })
