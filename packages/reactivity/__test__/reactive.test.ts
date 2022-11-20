@@ -135,3 +135,62 @@ describe('工具函数测试', () => {
     expect(isReactive(obj2)).toBe(true)
   })
 })
+
+describe('响应式的清理', () => {
+  it('响应式的清理', () => {
+    const obj = reactive({
+      name: '孙悟空',
+      age: 500,
+      ok: true,
+    })
+    let val
+    const fn = vi.fn(() => {
+      val = obj.ok ? obj.name : 'vue3'
+    })
+    effect(fn)
+    expect(val).toBe('孙悟空')
+    expect(fn).toBeCalledTimes(1)
+    obj.ok = false
+    expect(fn).toBeCalledTimes(2)
+    expect(val).toBe('vue3')
+
+    // obj.ok 为false 后，fn 函数就不会再依赖 obj.name 了
+    obj.name = '猪八戒'
+    expect(fn).toBeCalledTimes(2)
+  })
+})
+
+// set 在循环时候删除一个，在添加这个，会出现 for 循环一直进行
+describe('ES6 set 的缺陷', () => {
+  it('es6 set的缺陷', () => {
+    const fn = () => {
+      const set = new Set([1])
+      let n = 1
+      set.forEach(() => {
+        set.delete(1)
+        set.add(1) // set 没有变化
+        n += 1
+        if (n > 99)
+          throw new Error('进入了死循环')
+      })
+    }
+    expect(() => fn()).toThrowError('死循环')
+  })
+
+  it('修复上述的 es6 set 缺陷', () => {
+    const fn = () => {
+      const set = new Set([1])
+      let n = 1
+      const setToRun = new Set(set) // 用一个新的 set 集合
+      setToRun.forEach(() => {
+        set.delete(1)
+        set.add(1) // set 没有变化
+        n += 1
+        if (n > 99)
+          throw new Error('进入了死循环')
+      })
+      return n
+    }
+    expect(fn()).toBe(2)
+  })
+})
