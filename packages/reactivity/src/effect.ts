@@ -1,4 +1,4 @@
-import { COL_KEY } from './reactive'
+import { COL_KEY } from './collectionHandlers'
 
 let activeEffect
 const effectStack: any = []

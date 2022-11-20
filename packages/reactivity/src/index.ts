@@ -5,7 +5,7 @@ import { isObject } from '@gy/utils'
 
 export const result = isObject({})
 
-export { effect } from './effect'
+export { effect, trigger, track } from './effect'
 export { reactive } from './reactive'
 export { ref } from './ref'
 

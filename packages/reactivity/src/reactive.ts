@@ -1,5 +1,6 @@
-import { isObject, toRawType } from '@gy/utils/src'
-import { track, trigger } from './effect'
+import { toRawType } from '@gy/utils/src'
+import { baseHandlers } from './baseHandlers'
+import { collectionHandlers } from './collectionHandlers'
 
 // 这里对于每一种数据类型，处理为响应式方式自然是不一样的
 // 对于 {}  [] 使用 proxy 的 set get等方式
@@ -12,12 +13,6 @@ const enum TargetType {
   INVALID = 0,
   COMMON = 1, // 普通对象
   COLLECTION = 2, // set map + weakxxx
-}
-
-export const COL_KEY = Symbol('collection')
-
-export const ReactiveFlags = {
-  RAW: '__v_raw',
 }
 
 function targetTypeMap (type: string) {
@@ -33,75 +28,6 @@ function targetTypeMap (type: string) {
     default:
       return TargetType.INVALID
   }
-}
-
-const baseHandlers = {
-  get (target, key, receiver) {
-    // 收集依赖关系
-    // const value = target[key]
-    // track(target, 'get', key)
-    // return isObject(value) ? reactive(value) : value
-
-    // 使用 reflect
-    const value = Reflect.get(target, key, receiver)
-    track(target, 'get', key)
-    return isObject(value) ? reactive(value) : value
-  },
-  set (target, key, val, reciever) {
-    // 使用标准的 Reflect 来进行处理
-    // 修改数据，执行副作用函数
-    const result = Reflect.set(target, key, val, reciever)
-    trigger(target, 'set', key)
-    return result
-
-    // 如果使用 普通的 target[key] 来进行处理呢，两者某些情况下是有区别的，可以解除注释来进行观察
-    // target[key] = val
-    // trigger(target, 'set', key)
-    // return true
-  },
-  //  等等还有很多其他方法，如 deleteProperty ，delete obj.count 会触发
-  deleteProperty (target, key) {
-    // 使用代理方式
-    const result = Reflect.deleteProperty(target, key)
-    trigger(target, 'delete', key)
-    return result
-    // 不使用 reflect 代理方式
-    // delete target[key]
-    // return true
-  },
-}
-const collectionActions = {
-  add (key) {
-    const target = this[ReactiveFlags.RAW]
-    const result = target.add(key)
-    trigger(target, 'collection-add', key)
-    return result
-  },
-  delete (key) {
-    const target = this[ReactiveFlags.RAW]
-    const result = target.delete(key)
-    trigger(target, 'collection-delete', key)
-    return result
-  },
-  has (key) {
-    const target = this[ReactiveFlags.RAW]
-    const result = target.has(key)
-    trigger(target, 'collection-has', key)
-    return result
-  },
-}
-
-const collectionHandlers = {
-  get (target, key) {
-    if (key === ReactiveFlags.RAW)
-      return target
-    if (key === 'size') {
-      track(target, 'collection-size', COL_KEY)
-      return Reflect.get(target, key)
-    }
-    // // set.add  set.delete set.has 等等
-    return collectionActions[key]
-  },
 }
 
 export function reactive (obj): any {
