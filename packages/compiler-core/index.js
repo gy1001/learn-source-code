@@ -13,10 +13,12 @@ function tokenizer (input) {
   let value = ''
   function push () {
     if (value) {
-      if (type === 'tagstart')
+      if (type === 'tagstart') {
         value = value.slice(1)
-      if (type === 'tagend')
+      }
+      if (type === 'tagend') {
         value = value.slice(2)
+      }
       tokens.push({
         type,
         value,
@@ -79,18 +81,19 @@ function parse (template) {
       }
       token = tokens[++cur]
       while (token.type !== 'tagend') {
-        if (token.type === 'props')
+        if (token.type === 'props') {
           node.props.push(walk())
-        else
+        } else {
           node.children.push(walk())
+        }
         token = tokens[cur]
       }
       cur++
       return node
     } else if (token.type === 'props') {
-      const [key, val] = token.value.replace('=', '~').split('~')
+      const [key, value] = token.value.replace('=', '~').split('~')
       cur++
-      return { key, val }
+      return { key, value }
     } else if (token.type === 'text') {
       cur++
       return token
@@ -122,6 +125,7 @@ function transform (ast) {
   // 标记一些 vue 的语法，vue3中多了一些静态标记
   // 遍历 ast 这棵树，对 vue 语法进行转换，对节点是否静态进行标记
   travest(ast, context)
+  ast.helpers = context.helpers
 }
 
 function travest (ast, context) {
@@ -135,21 +139,31 @@ function travest (ast, context) {
       ast.children.forEach((astNode) => {
         travest(astNode, context)
       })
+      ast.flag = 0
       ast.props = ast.props.map((prop) => {
-        const { key, val } = prop
+        const { key, value } = prop
         if (key[0] === '@') {
+          ast.flag |= PatchFlags.EVENT
           return {
             key: `on${key[1].toUpperCase()}${key.slice(2)}`,
-            val,
+            value,
           }
         } else if (key[0] === ':') {
           // 属性的操作函数不同 diff 的时候做不同的标记
           // class
           // styles
           // 别的属性
+          const k = key.slice(1)
+          if (k === 'class') {
+            ast.flag |= PatchFlags.CLASS
+          } else if (k === 'style') {
+            ast.flag |= PatchFlags.STYLE
+          } else {
+            ast.flag |= PatchFlags.PROPS
+          }
           return {
             key: key.slice(1),
-            val,
+            value,
           }
         } else if (key.startsWith('v-')) {
           // v-model v-if
@@ -160,29 +174,67 @@ function travest (ast, context) {
       })
       break
     case 'text':
-      if (re.test(ast.val)) {
+      if (re.test(ast.value)) {
         // 说明有 变量
         context.helpers.add('toDisplayString')
-        ast.val = ast.val.replace(re, (s0, s1) => {
+        ast.flag |= PatchFlags.TEXT
+        ast.value = ast.value.replace(re, (s0, s1) => {
           return s1 // 直接替换，默认变量
         })
       } else {
         // 普通的文本
+        ast.static = true
       }
       break
   }
   return ast
 }
 
+function travaseNode (node, ast) {
+  const { flag } = ast
+  switch (node.type) {
+    case 'element': {
+      const props = node.props.reduce((ret, p) => {
+        if (flag && PatchFlags.PROPS) {
+          ret.push(`${p.key}: _cxt.${p.value}`)
+        } else {
+          ret.push(`${p.key}:${p.value}`)
+        }
+        return ret
+      }, []).join(',')
+      return `_createElementVNode("${node.tag}", {${props}}, [
+        ${node.children.map(n => travaseNode(n, ast))}
+      ]${node.flag ? `,${node.flag}` : ''})`
+    }
+    case 'text':
+      if (node.static) {
+        return `'${node.value}'`
+      } else {
+        return `_toDisplayString(_ctx.${node.value})`
+      }
+  }
+}
+
 // 标记之后的 ast 生成render 函数
-function generate () { }
+function generate (ast) {
+  // 标记之后的 ast 生成 render 函数
+  const code = `import { ${[...ast.helpers].map(v => `${v} as _${v}`).join(',')}
+        }  from 'vue';
+        export function render (_ctx, _cache, $props) {
+          return (_openBlock(), ${ast.children.map(node => travaseNode(node, ast))})
+  }
+  `
+  return code
+}
 
 function compile (template) {
   // 模板解析成 render 函数
   // 第一步：生成 Ast
   const ast = parse(template.trim())
   transform(ast)
-  console.log(JSON.stringify(ast, null, 2))
+  return generate(ast)
+  // console.log(JSON.stringify(ast, null, 2))
 }
 
-compile(template)
+const genderCode = compile(template)
+console.log(genderCode)
